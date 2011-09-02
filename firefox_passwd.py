@@ -62,8 +62,11 @@ def get_encrypted_sites(firefox_profile_dir=None):
     finally:
         connection.close()
 
-def decrypt(encrypted_string, firefox_profile_directory):
-    process = Popen([PWDECRYPT, '-d', firefox_profile_directory],
+def decrypt(encrypted_string, firefox_profile_directory, password = None):
+    execute = [PWDECRYPT, '-d', firefox_profile_directory]
+    if password:
+        execute.extend(['-p', password])
+    process = Popen(execute,
                     stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate(encrypted_string)
     
@@ -73,12 +76,12 @@ def decrypt(encrypted_string, firefox_profile_directory):
     password = output[index:-1] # And we strip the final quotation mark
     return password
 
-def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None):
+def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None, password = None):
     if not firefox_profile_directory:
         firefox_profile_directory = get_default_firefox_profile_directory()
     for site in get_encrypted_sites(firefox_profile_directory):
-        plain_user = decrypt(site.encryptedUsername, firefox_profile_directory)
-        plain_password = decrypt(site.encryptedPassword, firefox_profile_directory)
+        plain_user = decrypt(site.encryptedUsername, firefox_profile_directory, password)
+        plain_password = decrypt(site.encryptedPassword, firefox_profile_directory, password)
         site = site._replace(plain_username=plain_user, plain_password=plain_password)
         log.debug("Dealing with Site: %r", site)
         log.info("user: %s, passwd: %s", plain_user, plain_password)
@@ -88,9 +91,11 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-d", "--directory", default=None,
                   help="the Firefox profile directory to use")
+    parser.add_option("-p", "--password", default=None,
+                  help="the master password for the Firefox profile")
     
     options, args = parser.parse_args()
     
     
-    for site in get_firefox_sites_with_decrypted_passwords(options.directory):
+    for site in get_firefox_sites_with_decrypted_passwords(options.directory, options.password):
         print site
