@@ -56,13 +56,7 @@ def get_encrypted_sites(firefox_profile_dir=None):
     try:
         cursor = connection.cursor()
         cursor.execute(query)
-        '''for id, hostname, httpRealm, formSubmitURL, \
-            usernameField, passwordField, encryptedUsername, \
-            encryptedPassword, guid, encType in cursor.fetchall():
-          site = Site(id, hostname, httpRealm, formSubmitURL,
-                      usernameField, passwordField, encryptedUsername,
-                      encryptedPassword, guid, encType)
-        '''
+
         for site in map(Site._make, cursor.fetchall()):
           yield site
     finally:
