@@ -66,9 +66,8 @@ def decrypt(encrypted_string, firefox_profile_directory):
     process = Popen([PWDECRYPT, '-d', firefox_profile_directory],
                     stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate(encrypted_string)
-    #process.stdin.close()
     
-    NEEDLE = 'Decrypted: "' # This strig is prepended to the decrypted password if found
+    NEEDLE = 'Decrypted: "' # This string is prepended to the decrypted password if found
     output = output.strip()
     index = output.index(NEEDLE)
     password = output[index:-1] # And we strip the final quotation mark
