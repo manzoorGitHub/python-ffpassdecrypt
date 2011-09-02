@@ -76,7 +76,7 @@ def decrypt(encrypted_string, firefox_profile_directory):
 def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None):
     if not firefox_profile_directory:
         firefox_profile_directory = get_default_firefox_profile_directory()
-    for site in get_encrypted_sites():
+    for site in get_encrypted_sites(firefox_profile_directory):
         plain_user = decrypt(site.encryptedUsername, firefox_profile_directory)
         plain_password = decrypt(site.encryptedPassword, firefox_profile_directory)
         site = site._replace(plain_username=plain_user, plain_password=plain_password)
@@ -85,5 +85,12 @@ def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None)
         yield site
 
 if __name__ == "__main__":
-    for site in get_firefox_sites_with_decrypted_passwords():
+    parser = OptionParser()
+    parser.add_option("-d", "--directory", default=None,
+                  help="the Firefox profile directory to use")
+    
+    options, args = parser.parse_args()
+    
+    
+    for site in get_firefox_sites_with_decrypted_passwords(options.directory):
         print site
