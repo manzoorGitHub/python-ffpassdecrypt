@@ -85,5 +85,12 @@ def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None)
         yield site
 
 if __name__ == "__main__":
-    for site in get_firefox_sites_with_decrypted_passwords():
+    parser = OptionParser()
+    parser.add_option("-d", "--directory", default=None,
+                  help="the Firefox profile directory to use")
+    
+    options, args = parser.parse_args()
+    
+    
+    for site in get_firefox_sites_with_decrypted_passwords(options.directory):
         print site
