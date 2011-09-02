@@ -69,7 +69,7 @@ def decrypt(encrypted_string, firefox_profile_directory):
     
     NEEDLE = 'Decrypted: "' # This string is prepended to the decrypted password if found
     output = output.strip()
-    index = output.index(NEEDLE)
+    index = output.index(NEEDLE) + len(NEEDLE)
     password = output[index:-1] # And we strip the final quotation mark
     return password
 
