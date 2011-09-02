@@ -73,8 +73,9 @@ def decrypt(encrypted_string, firefox_profile_directory):
     password = output[index:-1] # And we strip the final quotation mark
     return password
 
-def get_firefox_sites_with_decrypted_passwords():
-    firefox_profile_directory = get_default_firefox_profile_directory()
+def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None):
+    if not firefox_profile_directory:
+        firefox_profile_directory = get_default_firefox_profile_directory()
     for site in get_encrypted_sites():
         plain_user = decrypt(site.encryptedUsername, firefox_profile_directory)
         plain_password = decrypt(site.encryptedPassword, firefox_profile_directory)
