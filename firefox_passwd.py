@@ -12,8 +12,8 @@ except ImportError:
 from subprocess import Popen, CalledProcessError, PIPE
 
 
-    
-logging.basicConfig(loglevel=logging.DEBUG)
+
+LOGLEVEL_DEFAULT = 'warn'
 
 log = logging.getLogger()
 PWDECRYPT = 'pwdecrypt'
@@ -93,9 +93,14 @@ if __name__ == "__main__":
                   help="the Firefox profile directory to use")
     parser.add_option("-p", "--password", default=None,
                   help="the master password for the Firefox profile")
-    
+    parser.add_option("-l", "--loglevel", default=LOGLEVEL_DEFAULT,
+                  help="the level of logging detail [debug, info, warn, critical, error]")
     options, args = parser.parse_args()
     
-    
+    loglevel = {'debug': logging.DEBUG, 'info': logging.INFO,
+                'warn': logging.WARN, 'critical':logging.CRITICAL,
+                'error': logging.ERROR}.get(options.loglevel, LOGLEVEL_DEFAULT)
+    logging.basicConfig(loglevel=loglevel)
+    log = logging.getLogger()
     for site in get_firefox_sites_with_decrypted_passwords(options.directory, options.password):
         print site
