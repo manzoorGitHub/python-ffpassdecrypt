@@ -76,6 +76,10 @@ def decrypt(encrypted_string, firefox_profile_directory, password = None):
     
     NEEDLE = 'Decrypted: "' # This string is prepended to the decrypted password if found
     output = output.strip()
+    if output == encrypted_string:
+        log.error('Password was not correct. Please try again without a '
+                   'password or with the correct one')
+    
     index = output.index(NEEDLE) + len(NEEDLE)
     password = output[index:-1] # And we strip the final quotation mark
     return password
