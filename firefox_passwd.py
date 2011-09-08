@@ -15,7 +15,7 @@ from subprocess import Popen, CalledProcessError, PIPE
 
 LOGLEVEL_DEFAULT = 'warn'
 
-log = logging.getLogger()
+#log = logging.getLogger()
 PWDECRYPT = 'pwdecrypt'
 
 SITEFIELDS = ['id', 'hostname', 'httpRealm', 'formSubmitURL', 'usernameField', 'passwordField', 'encryptedUsername', 'encryptedPassword', 'guid', 'encType', 'plain_username', 'plain_password' ]
@@ -100,7 +100,8 @@ if __name__ == "__main__":
     loglevel = {'debug': logging.DEBUG, 'info': logging.INFO,
                 'warn': logging.WARN, 'critical':logging.CRITICAL,
                 'error': logging.ERROR}.get(options.loglevel, LOGLEVEL_DEFAULT)
-    logging.basicConfig(loglevel=loglevel)
+    logging.basicConfig(level=loglevel)
     log = logging.getLogger()
+
     for site in get_firefox_sites_with_decrypted_passwords(options.directory, options.password):
         print site
