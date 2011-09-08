@@ -15,7 +15,7 @@ from subprocess import Popen, CalledProcessError, PIPE
 
 LOGLEVEL_DEFAULT = 'warn'
 
-#log = logging.getLogger()
+log = logging.getLogger()
 PWDECRYPT = 'pwdecrypt'
 
 SITEFIELDS = ['id', 'hostname', 'httpRealm', 'formSubmitURL', 'usernameField', 'passwordField', 'encryptedUsername', 'encryptedPassword', 'guid', 'encType', 'plain_username', 'plain_password' ]
@@ -63,12 +63,16 @@ def get_encrypted_sites(firefox_profile_dir=None):
         connection.close()
 
 def decrypt(encrypted_string, firefox_profile_directory, password = None):
+    log = logging.getLogger('firefoxpasswd.decrypt')
     execute = [PWDECRYPT, '-d', firefox_profile_directory]
     if password:
         execute.extend(['-p', password])
     process = Popen(execute,
                     stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate(encrypted_string)
+    
+    log.debug('Sent: %s', encrypted_string)
+    log.debug('Got: %s', output)
     
     NEEDLE = 'Decrypted: "' # This string is prepended to the decrypted password if found
     output = output.strip()
@@ -102,6 +106,6 @@ if __name__ == "__main__":
                 'error': logging.ERROR}.get(options.loglevel, LOGLEVEL_DEFAULT)
     logging.basicConfig(level=loglevel)
     log = logging.getLogger()
-
+    
     for site in get_firefox_sites_with_decrypted_passwords(options.directory, options.password):
         print site
