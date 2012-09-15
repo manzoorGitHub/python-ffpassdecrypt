@@ -44,8 +44,13 @@ class secuPWData(Structure):
 #### End of libnss definitions ####
 
 
-def get_default_firefox_profile_directory():
-    profiles_dir = os.path.expanduser('~/.mozilla/firefox')
+def get_default_firefox_profile_directory(dir='~/.mozilla/firefox'):
+    '''Returns the directory name of the default profile
+    
+    If you changed the default dir to something like ~/.thunderbird,
+    you would get the Thunderbird default profile directory.'''
+
+    profiles_dir = os.path.expanduser(dir)
     profile_path = None
 
     cp = RawConfigParser()
@@ -63,6 +68,7 @@ def get_default_firefox_profile_directory():
 
     return profile_path
     
+
 def get_encrypted_sites(firefox_profile_dir=None):
     if firefox_profile_dir is None:
         firefox_profile_dir = get_default_firefox_profile_directory()
