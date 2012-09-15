@@ -221,9 +221,13 @@ def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None,
         log.info("user: %s, passwd: %s", plain_user, plain_password)
         yield site
 
-def main_decryptor(firefox_profile_directory, password):
+def main_decryptor(firefox_profile_directory, password, thunderbird=False):
     if not firefox_profile_directory:
-        firefox_profile_directory = get_default_firefox_profile_directory()
+        if thunderbird:
+            dir = '~/.thunderbird/'
+        else:
+            dir = '~/.mozilla/firefox'
+        firefox_profile_directory = get_default_firefox_profile_directory(dir)
 
     decryptor = NativeDecryptor(firefox_profile_directory, password)
     
@@ -238,6 +242,10 @@ if __name__ == "__main__":
                   help="the master password for the Firefox profile")
     parser.add_option("-l", "--loglevel", default=LOGLEVEL_DEFAULT,
                   help="the level of logging detail [debug, info, warn, critical, error]")
+    parser.add_option("-t", "--thunderbird", default=False, action='store_true',
+                  help="by default we try to find the Firefox default profile."
+                  " But you can as well ask for Thunderbird's default profile."
+                  " For a more reliable way, give the directory with -d.")
     parser.add_option("-n", "--native", default=True, action='store_true',
                   help="use the native decryptor, i.e. make Python use "
                   "libnss directly instead of invoking the helper program"
@@ -259,7 +267,7 @@ if __name__ == "__main__":
     password = options.password
 
     if not options.external:
-        sys.exit (main_decryptor(options.directory, password))
+        sys.exit (main_decryptor(options.directory, password, thunderbird=options.thunderbird))
     else:
         for site in get_firefox_sites_with_decrypted_passwords(options.directory, password):
             print site
