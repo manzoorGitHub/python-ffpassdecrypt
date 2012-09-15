@@ -70,12 +70,24 @@ def get_default_firefox_profile_directory(dir='~/.mozilla/firefox'):
     
 
 def get_encrypted_sites(firefox_profile_dir=None):
+    'Opens signons.sqlite and yields encryped password data'
+    
     if firefox_profile_dir is None:
         firefox_profile_dir = get_default_firefox_profile_directory()
     password_sqlite = os.path.join(firefox_profile_dir, "signons.sqlite")
     query = '''SELECT id, hostname, httpRealm, formSubmitURL,
                       usernameField, passwordField, encryptedUsername,
                       encryptedPassword, guid, encType, 'noplainuser', 'noplainpasswd' FROM moz_logins;'''
+
+    # We don't want to type out all the column from the DB as we have 
+    ## stored them in the SITEFIELDS already. However, we have two 
+    ## components extra, the plain usename and password. So we remove 
+    ## that from the list, because the table doesn't have that column. 
+    ## And we add two literal SQL strings to make our "Site" data 
+    ## structure happy
+    #queryfields = SITEFIELDS[:-2] + ["'noplainuser'", "'noplainpassword'"]
+    #query = '''SELECT %s 
+    #           FROM moz_logins;''' % ', '.join(queryfields)
 
     connection = sqlite.connect(password_sqlite)
     try:
