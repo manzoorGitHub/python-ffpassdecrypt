@@ -100,6 +100,13 @@ def get_encrypted_sites(firefox_profile_dir=None):
         connection.close()
 
 def decrypt(encrypted_string, firefox_profile_directory, password = None):
+    '''Opens an external tool to decrypt strings
+    
+    This is mostly for historical reasons or if the API changes. It is 
+    very slow because it needs to call out a lot. It uses the 
+    "pwdecrypt" tool which you might have packaged. Otherwise, you 
+    need to build it yourself.'''
+    
     log = logging.getLogger('firefoxpasswd.decrypt')
     execute = [PWDECRYPT, '-d', firefox_profile_directory]
     if password:
@@ -119,11 +126,17 @@ def decrypt(encrypted_string, firefox_profile_directory, password = None):
     
     index = output.index(NEEDLE) + len(NEEDLE)
     password = output[index:-1] # And we strip the final quotation mark
+
     return password
 
 
 class NativeDecryptor(object):
+    'Calls the NSS API to decrypt strings'
+
     def __init__(self, directory, password = ''):
+        '''You need to give the profile directory and optionally a 
+        password. If you don't give a password but one is needed, you 
+        will be prompted by getpass to provide one.'''
         self.directory = directory
         self.log = logging.getLogger()
         
@@ -184,10 +197,14 @@ class NativeDecryptor(object):
         
         #self.pwdata = pwdata
     
+
     def __del__(self):
         self.libnss.NSS_Shutdown()
     
+
     def decrypt(self, string, *args):
+        'Decrypts a given string'
+
         libnss =  self.libnss
 
         uname = SECItem()
@@ -195,33 +212,40 @@ class NativeDecryptor(object):
         #pwdata = self.pwdata
         
         cstring = SECItem()
-        cstring.data  = cast (c_char_p (base64.b64decode (string)), c_void_p)
-        cstring.len = len (base64.b64decode (string))
+        cstring.data  = cast( c_char_p( base64.b64decode(string)), c_void_p)
+        cstring.len = len(base64.b64decode(string))
         #if libnss.PK11SDR_Decrypt (byref (cstring), byref (dectext), byref (pwdata)) == -1:
         if libnss.PK11SDR_Decrypt (byref (cstring), byref (dectext)) == -1:
-	        raise Exception (libnss.PORT_GetError ())
+	        raise Exception (libnss.PORT_GetError())
 	        
-        decrypted_data = string_at (dectext.data, dectext.len)
-	
+        decrypted_data = string_at(dectext.data, dectext.len)
+	    
     	return decrypted_data
 	
 	
     def encrypted_sites(self):
+        'Yields the encryped passwords from the profile'
         sites = get_encrypted_sites(self.directory)
 
         return sites
 
+
     def decrypted_sites(self):
+        'Decrypts the encrypted_sites and yields the results'
+
         sites = self.encrypted_sites()
         
         for site in sites:
             plain_user = self.decrypt(site.encryptedUsername)
             plain_password = self.decrypt(site.encryptedPassword)
-            site = site._replace(plain_username=plain_user, plain_password=plain_password)
+            site = site._replace(plain_username=plain_user,
+                plain_password=plain_password)
             
             yield site
 
+
 def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None, password = None):
+    'Old school decryption of passwords using the external tool'
     if not firefox_profile_directory:
         firefox_profile_directory = get_default_firefox_profile_directory()
     #decrypt = NativeDecryptor(firefox_profile_directory).decrypt
@@ -234,6 +258,7 @@ def get_firefox_sites_with_decrypted_passwords(firefox_profile_directory = None,
         yield site
 
 def main_decryptor(firefox_profile_directory, password, thunderbird=False):
+    'Main function to get Firefox and Thunderbird passwords'
     if not firefox_profile_directory:
         if thunderbird:
             dir = '~/.thunderbird/'
