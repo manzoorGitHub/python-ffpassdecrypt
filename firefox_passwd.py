@@ -138,7 +138,8 @@ class NativeDecryptor(object):
         password. If you don't give a password but one is needed, you 
         will be prompted by getpass to provide one.'''
         self.directory = directory
-        self.log = logging.getLogger()
+        self.log = logging.getLogger('NativeDecryptor')
+        self.log.debug('Trying to work on %s', directory)
         
         self.libnss = CDLL('libnss3.so')
         if self.libnss.NSS_Init(directory) != 0:
@@ -215,8 +216,12 @@ class NativeDecryptor(object):
         cstring.data  = cast( c_char_p( base64.b64decode(string)), c_void_p)
         cstring.len = len(base64.b64decode(string))
         #if libnss.PK11SDR_Decrypt (byref (cstring), byref (dectext), byref (pwdata)) == -1:
+        self.log.debug('Trying to decrypt %s (error: %s)', string, libnss.PORT_GetError())
         if libnss.PK11SDR_Decrypt (byref (cstring), byref (dectext)) == -1:
-	        raise Exception (libnss.PORT_GetError())
+            error = libnss.PORT_GetError()
+            libnss.PR_ErrorToString.restype = c_char_p
+            error_str = libnss.PR_ErrorToString(error)
+            raise Exception ("%d: %s" % (error, error_str))
 	        
         decrypted_data = string_at(dectext.data, dectext.len)
 	    
